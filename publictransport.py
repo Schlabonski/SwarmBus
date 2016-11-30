@@ -9,8 +9,9 @@ class SimpleBus(object):
         self.speed = v_init
         self.phi = phi # angle between 0 and 2pi
         self.vmax = v_max
-        self.a_max = .1
+        self.a_max = a_max
         self.is_moving = is_moving
+        self.planned_route = []
 
 
     def drive(self, x_1, dt):
@@ -62,3 +63,12 @@ class SimpleBus(object):
             yield x_0, v_0 
 
         
+    def add_passenger_to_route(self, pos, destination=[0,0]):
+        """Adds a passenger to the planned route.
+
+        :pos: position of the passenger
+        :destination: destination of passenger
+
+        """
+        self.planned_route.append(pos)
+        self.planned_route.append(destination)
