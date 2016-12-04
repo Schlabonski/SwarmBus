@@ -34,11 +34,16 @@ class SimpleBus(object):
         # angle is arcsin((y_new - y_old)/(x_new - x_old))
         difference = x_1 - x_0
         dist = np.sqrt(np.sum(difference**2))
-        
+
+
         # calculate a unit vector in direction of the destination
         direction = difference / dist
         v_0 = v_0 * direction
         a = a * direction
+
+        # update the angle of the bus with respect to e_x
+        phi = np.arctan2(direction[1], direction[0])
+        self.phi = phi + np.pi/2
 
         print('Starting at {0} with direction {1}'.format(x_0, direction))
 
