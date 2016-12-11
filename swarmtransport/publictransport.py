@@ -88,6 +88,32 @@ class DecisiveBus(SimpleBus):
         self.max_route_length = max_route_length
         self.passengers = [] # should this be a list or another structure?
 
+
+    def _find_minimum_elongation(route, position):
+        """Returns the optimal elongation and position where to insert
+        `position` into `route`."""
+        # find the elongation of the route for every possible insertion of
+        # `position` into `route`
+        vector_to_position = route - position
+
+        direct_distance = np.sqrt(np.sum((route[:-1] - route[1:])**2,
+            axis=1))
+        deviation_distance = np.sqrt(np.sum(vector_to_position[:-1]**2,axis=1)) \
+                          + np.sqrt(np.sum(vector_to_position[1:]**2, axis=1))
+
+        elongation = deviation_distance - direct_distance
+
+        # find minimum elongation and its position
+        elong = np.min(elongation)
+        min_index = np.argmin(elongation)
+
+        # is this worse than just inserting the position at the end?
+        dist_from_end = np.sqrt(np.sum((route[-1] - position)**2))
+        if dist_from_end < elong:
+            return dist_from_end, -1
+
+        return elong, min_index+1
+
     def pick_passenger(self, passenger):
         """Adds a passenger to the planned route.
 
@@ -106,32 +132,6 @@ class DecisiveBus(SimpleBus):
             self.passengers.append(passenger)
             return True
 
-
-        def find_minimum_elongation(route, position):
-            """Returns the optimal elongation and position where to insert
-            `position` into `route`."""
-            # find the elongation of the route for every possible insertion of
-            # `position` into `route`
-            vector_to_position = route - position
-
-            direct_distance = np.sqrt(np.sum((route[:-1] - route[1:])**2,
-                axis=1))
-            deviation_distance = np.sqrt(np.sum(vector_to_position[:-1]**2,axis=1)) \
-                              + np.sqrt(np.sum(vector_to_position[1:]**2, axis=1))
-
-            elongation = deviation_distance - direct_distance
-
-            # find minimum elongation and its position
-            elong = np.min(elongation)
-            min_index = np.argmin(elongation)
-
-            # is this worse than just inserting the position at the end?
-            dist_from_end = np.sqrt(np.sum((route[-1] - position)**2))
-            if dist_from_end < elong:
-                return dist_from_end, -1
-
-            return elong, min_index+1
-
         # calculate the current total length of the route
         route_array = np.asarray(route)
         start_position = np.asarray(passenger.start_position)
@@ -140,7 +140,7 @@ class DecisiveBus(SimpleBus):
         current_length_of_route = np.sum(np.linalg.norm(route_array[:-1]-route_array[1:], axis=1))
 
         # find the best position to pick up the passenger
-        elongation, min_indx = find_minimum_elongation(route_array, start_position)
+        elongation, min_indx = self._find_minimum_elongation(route_array, start_position)
 
         # does this elongate the route too much?
         if current_length_of_route + elongation > self.max_route_length:
@@ -155,7 +155,7 @@ class DecisiveBus(SimpleBus):
             elongation2 = np.linalg.norm(start_position-destination)
             min_indx2 = -1
         else:
-            elongation2, min_indx2 = find_minimum_elongation(new_route_array[min_indx:], destination)
+            elongation2, min_indx2 = self._find_minimum_elongation(new_route_array[min_indx:], destination)
 
         final_length = current_length_of_route + elongation + elongation2
         if final_length > self.max_route_length:
