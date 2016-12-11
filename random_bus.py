@@ -77,8 +77,8 @@ def update(event):
 
 
     citymap.canvas.update()
-    image = citymap.canvas.render()
-    vispy.io.write_png('movie/shot{0}.png'.format(n), image)
+    #image = citymap.canvas.render()
+    #vispy.io.write_png('movie/shot{0}.png'.format(n), image)
     n += 1
     
 
