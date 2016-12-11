@@ -77,3 +77,91 @@ class SimpleBus(object):
         """
         self.planned_route.append(pos)
         self.planned_route.append(destination)
+
+class DecisiveBus(SimpleBus):
+
+    """A decisive bus can pick passengers and decide whether it picks one or
+    not."""
+
+    def __init__(self, max_route_length=100, **kwargs):
+        super().__init__(**kwargs)
+        self.max_route_length = max_route_length
+        self.passengers = [] # should this be a list or another structure?
+
+    def pick_passenger(self, passenger):
+        """Adds a passenger to the planned route.
+
+        This function will check whether the minimum elongation of the planned
+        route by taking a passenger exceeds the maximum allowed route length.
+
+        :passenger: an instance of passenger.SimplePassenger
+
+        """
+        route = self.planned_route
+        
+        # no passengers yet? Go and get some!
+        if len(route) == 0:
+            route.append(passenger.start_position)
+            route.append(passenger.destination)
+            self.passengers.append(passenger)
+            return
+
+
+        def find_minimum_elongation(route, position):
+            """Returns the optimal elongation and position where to insert
+            `position` into `route`."""
+            # find the elongation of the route for every possible insertion of
+            # `position` into `route`
+            vector_to_position = route - position
+
+            direct_distance = np.sqrt(np.sum((route[:-1] - route[1:])**2,
+                axis=1))
+            deviation_distance = np.sqrt(np.sum(vector_to_position[:-1]**2,axis=1)) \
+                              + np.sqrt(np.sum(vector_to_position[1:]**2, axis=1))
+
+            elongation = deviation_distance - direct_distance
+
+            # find minimum elongation and its position
+            elong = np.min(elongation)
+            min_index = np.argmin(elongation)
+
+            # is this worse than just inserting the position at the end?
+            dist_from_end = np.sqrt(np.sum((route[-1] - position)**2))
+            if dist_from_end < elong:
+                return dist_from_end, -1
+
+            return elong, min_index+1
+
+        # calculate the current total length of the route
+        route_array = np.asarray(route)
+        start_position = np.asarray(passenger.start_position)
+        destination = np.asarray(passenger.destination)
+
+        current_length_of_route = np.sum(np.linalg.norm(route_array[:-1]-route_array[1:], axis=1))
+
+        # find the best position to pick up the passenger
+        elongation, min_indx = find_minimum_elongation(route_array, start_position)
+
+        # does this elongate the route too much?
+        if current_length_of_route + elongation > self.max_route_length:
+            return
+
+        route.insert(min_indx, passenger.start_position)
+
+        # check whether the destination can be inserted AFTER the start without elongating the
+        # route beyond the given maximum length
+        new_route_array = np.asarray(route)
+        if min_indx == -1:
+            elongation2 = np.linalg.norm(start_position-destination)
+            min_indx2 = -1
+        else:
+            elongation2, min_indx2 = find_minimum_elongation(new_route_array[min_indx:], destination)
+
+        final_length = current_length_of_route + elongation + elongation2
+        if final_length > self.max_route_length:
+            # remove start point from route
+            route.pop(min_indx)
+            return
+
+        route.insert(min_indx2, passenger.destination)
+
