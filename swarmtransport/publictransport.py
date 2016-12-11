@@ -104,7 +104,7 @@ class DecisiveBus(SimpleBus):
             route.append(passenger.start_position)
             route.append(passenger.destination)
             self.passengers.append(passenger)
-            return
+            return True
 
 
         def find_minimum_elongation(route, position):
@@ -144,7 +144,7 @@ class DecisiveBus(SimpleBus):
 
         # does this elongate the route too much?
         if current_length_of_route + elongation > self.max_route_length:
-            return
+            return False
 
         route.insert(min_indx, passenger.start_position)
 
@@ -161,7 +161,9 @@ class DecisiveBus(SimpleBus):
         if final_length > self.max_route_length:
             # remove start point from route
             route.pop(min_indx)
-            return
+            return False
 
         route.insert(min_indx2, passenger.destination)
+        self.passengers.append(passenger)
+        return True
 

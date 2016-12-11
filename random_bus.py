@@ -1,5 +1,6 @@
 from swarmtransport.representations import CityMap, BusRepresentation 
-from swarmtransport.publictransport import SimpleBus
+from swarmtransport.publictransport import SimpleBus, DecisiveBus
+import swarmtransport.passenger as ps
 
 from vispy import app, scene
 from vispy.ext.six import next
@@ -13,17 +14,22 @@ import numpy as np
 def rotation_matrix(deg):
     pass
 
+# initialize a citymap and a traffic network
 citymap = CityMap(size=(1000, 800))
+traffic_network = ps.initialize_random_network(15, citymap.size)
+
 
 busses = []
 bus_representations = []
 bus_positions = []
 n_buses = 15
+
+# initialize the busses and their representations
 for i in range(n_buses):
     position = np.random.rand(2) * np.array(citymap.size)
     destination = np.random.rand(2) * np.array(citymap.size)
 
-    bus = SimpleBus(x_init=position, v_max=40, a_max=20)
+    bus = DecisiveBus(x_init=position, v_max=40, a_max=20)
     bus_position = bus.drive(destination, dt=0.1)
 
     bus_color = citymap.color_from_position(bus.position)
