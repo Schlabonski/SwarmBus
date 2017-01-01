@@ -34,12 +34,8 @@ for i in range(n_buses):
 
     bus_color = citymap.color_from_position(bus.position)
     bus_repr = BusRepresentation(bus, canvas=citymap.canvas, color=bus_color)
-    
-    rotation = scene.AffineTransform()
-    rotation.translate((-bus.position[0],-bus.position[1],0))
-    rotation.rotate(bus.phi, (0,0,1))
-    rotation.translate((bus.position[0], bus.position[1], 0))
-    bus_repr.repr.transform *= rotation
+
+    bus_repr.translate_rotate(bus.position, bus.phi/2/np.pi * 360)
 
     busses.append(bus)
     bus_representations.append(bus_repr)
@@ -66,13 +62,10 @@ def update(event):
             bus_positions[i] = bus.drive(random_x, dt=0.1)
             x = bus.position
 
-
-
     citymap.canvas.update()
     #image = citymap.canvas.render()
     #vispy.io.write_png('movie/shot{0}.png'.format(n), image)
     n += 1
-    
 
 timer = app.Timer(0.001, connect=update, start=True)
 
