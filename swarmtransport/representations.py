@@ -2,6 +2,7 @@ from colormath.color_objects import XYZColor, sRGBColor
 from colormath.color_conversions import convert_color
 import numpy as np
 from vispy import scene
+from vispy.visuals.transforms.linear import AffineTransform
 
 class CityMap(object):
 
@@ -52,3 +53,35 @@ class BusRepresentation(object):
         self.repr = scene.Rectangle(pos=pos, height=100, width=40, color=color,
                 radius=10, border_color='#545454', parent= canvas.central_widget,
                 antialias=True, method='agg')
+    
+    def translate(self, pos):
+        """Translates the representation to the  new position `pos`.
+
+        :pos: 2d array_like
+
+        """
+        self.repr.repr.pos = (pos[0], pos[1])
+
+    def translate_rotate(self, pos, angle_abs):
+        """Translates and rotates the BusRepresentation object.
+
+        :angle_abs: absolute rotation angle in degrees
+        :pos: 2d arra_like of position
+
+        """
+        transform = AffineTransform()
+
+        # first we need to transform the representation to the origin
+        current_pos = self.repr.pos
+
+        transform.translate((-current_pos[0], -current_pos[1], 0))
+
+        # in the origin, rotate the representation around the z-axis
+        transform.rotate(angle_abs, (0,0,1))
+
+        # translate the representation to the new position
+        transform.translate((pos[0], pos[1], 0))
+
+        # multiply the transformation to the previous one
+        self.repr.transform = transform
+

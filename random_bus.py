@@ -54,20 +54,12 @@ def update(event):
         bus_position = bus_positions[i]
         try:
             x,v = next(bus_position)
-            bus_repr.repr.pos = (x[0], x[1])
 
             new_color = citymap.color_from_position(x)
             bus_repr.repr.color = new_color
             
-            # adapt the direction of the bus
-            bus_repr.repr.transform = AffineTransform()
-
-            rotation = AffineTransform()
-            rotation.translate((-x[0], -x[1], 0))
-            rotation.rotate(bus.phi/2/np.pi * 360, (0,0,1))
-            rotation.translate((x[0], x[1], 0))
-
-            bus_repr.repr.transform *= rotation
+            # adapt the direction and position of the bus
+            bus_repr.translate_rotate((x[0], x[1]), bus.phi/2/np.pi * 360)
 
         except StopIteration:
             random_x = np.random.random(2) * np.array(citymap.size)
